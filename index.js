@@ -278,7 +278,7 @@ class Server extends turbo.Server {
     const self = this
     const headers = this._alloc() // we are not pipelining (right?) so headers re-use is safe
     const buf = this._alloc()
-    const parser = new HTTPParser(HTTPParser.REQUEST)
+    const parser = new HTTPParser()
 
     var req
     var res

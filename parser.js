@@ -37,6 +37,12 @@ const STATE_BODY = 6
 
 const HEADER_CONTENT_LENGTH = 'content-length'
 
+const kOnHeadersComplete = 0
+const kOnBody = 1
+const kOnMessageComplete = 2
+
+function noop (a = 1, b = 2, c = 3) {}
+
 class HttpParser {
   constructor () {
     this.info = {
@@ -52,6 +58,9 @@ class HttpParser {
     this.nextCouldHaveSpace = false
     this.bodyLength = 0
     this.bodyOffset = 0
+    this[kOnHeadersComplete] = noop
+    this[kOnBody] = noop
+    this[kOnMessageComplete] = noop
   }
 
   execute (buffer) {
@@ -106,7 +115,7 @@ class HttpParser {
             if (buffer[i + 2] === 0x0d && buffer[i + 3] === 0x0a) {
               this.state = STATE_BODY
               i += 3
-              this[HttpParser.kOnHeadersComplete](this.info)
+              this[kOnHeadersComplete](this.info)
             } else {
               this.state = STATE_HEADER_KEY
               i++
@@ -127,17 +136,18 @@ class HttpParser {
 
   handleBody (buffer, offset) {
     const slice = buffer.slice(offset, buffer.length)
-    this[HttpParser.kOnBody](slice, this.bodyOffset)
-    this.bodyOffset += slice.length
+    const len = slice.len
+    this[kOnBody](slice, this.bodyOffset, len)
+    this.bodyOffset += len
     if (this.bodyOffset >= this.bodyLength) {
-      this[HttpParser.kOnMessageComplete]()
+      this[kOnMessageComplete]()
       this.state = STATE_METHOD
     }
   }
 }
 
-HttpParser.kOnHeadersComplete = Symbol('headers complete')
-HttpParser.kOnBody = Symbol('body')
-HttpParser.kOnMessageComplete = Symbol('message complete')
+HttpParser.kOnHeadersComplete = kOnHeadersComplete
+HttpParser.kOnBody = kOnBody
+HttpParser.kOnMessageComplete = kOnMessageComplete
 
 module.exports = HttpParser

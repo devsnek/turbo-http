@@ -22,10 +22,7 @@ setInterval(function () {
 
   for (var parser, i = 0; i < n; i++) {
     parser = new HTTPParser()
-    parser[HTTPParser.kOnBody] = parser[HTTPParser.kOnHeadersComplete] = noop
     parser.execute(request)
-    // parser.finish()
-    // parser.close()
   }
 
   var now = Date.now()
